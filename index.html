@@ -1,0 +1,129 @@
+<canvas id="3d" width="200" height="200" style="background-color:white;border:1px black solid;"></canvas>
+<script>
+  var c=document.getElementById("3d");
+  var ctx = c.getContext("2d");
+
+var objects=[
+  {
+    x:function(t){
+        return 0+t;
+    },
+    y:function(t){
+        return 0+t;
+    },
+    z:function(t){
+        return 10*t;
+    }
+  },
+
+
+];
+
+
+
+
+
+
+var min=-100;
+var max=100;
+var step=1;
+
+var width=200/2;
+var height=200/2;
+var depth=200/2
+
+
+
+for(var i=0-width;i<width;i+=step){
+  for(var j=0-height;j<height;j+=step){
+    for(var k=0-depth;k<depth;k+=step){
+      for(var l=0;l<objects.length;l++){
+        if(intersects(objects[l],[i,j,k])){
+          if(k>0){
+            ctx.fillStyle="black";
+            ctx.beginPath();
+            ctx.arc(i+width,j+height,k/width*2,0,2*Math.PI,false);
+            ctx.fill();
+            ctx.fillRect(i+width,j+height,1, 1 );
+
+          }
+          break;
+          break;
+        }
+      }
+    }
+  }
+}
+
+
+
+function intersection(o1,o2){
+  var out=[];
+  for(var t=min;t<max;t+=step){
+    if(intersects(o1,[o2.x(t),o2.y(t),o2.z(t)])){
+      out.push([o2.x(t),o2.y(t),o2.z(t)]);
+    }
+  }
+
+  return out;
+
+}
+
+function intersects(obj,pt){
+
+  for(var t=min;t<max;t+=step){
+    if(
+      obj.x(t)==pt[0]&&
+      obj.y(t)==pt[1]&&
+      obj.z(t)==pt[2]
+
+    ){
+      return true;
+    }
+  }
+  return false;
+}
+
+
+function Point(x,y,z){
+  return(
+  {
+    x:function(t){
+      return x;
+    },
+    y:function(t){
+      return y;
+    },
+    z:function(t){
+      return z;
+    }
+  }
+  );
+}
+
+function Line(x1,y1,z1,x2,y2,z2){
+  var slopeX=x2-x1;
+  var slopeY=y2-y1;
+  var slopeZ=y2-y1;
+
+  console.log(slopeX*1+x1);
+
+  return(
+  {
+    x:function(t){
+      return slopeX*t+x1;
+    },
+    y:function(t){
+      return slopeY*t+y1;
+    },
+    z:function(t){
+      return slopeZ*t+z1;
+    }
+  });
+
+}
+
+
+
+
+</script>
