@@ -1,10 +1,51 @@
-<canvas id="3d" width="200" height="200" style="background-color:white;border:1px black solid;"></canvas>
+<canvas id="3d" width="100" height="100" style="background-color:white;border:1px black solid;"></canvas>
 <script>
-  var c=document.getElementById("3d");
-  var ctx = c.getContext("2d");
+var c=document.getElementById("3d");
+var ctx = c.getContext("2d");
 
 var objects=[
-
+{
+  x:function(t){
+      return t;
+  },
+  y:function(t){
+      return 0;
+  },
+  z:function(t){
+      return 0;
+  },
+  color:"black",
+  min:-Infinity,
+  max:Infinity
+},
+{
+  x:function(t){
+      return 0;
+  },
+  y:function(t){
+      return t;
+  },
+  z:function(t){
+      return 0;
+  },
+  color:"black",
+  min:-Infinity,
+  max:Infinity
+},
+{
+  x:function(t){
+      return 0;
+  },
+  y:function(t){
+      return 0;
+  },
+  z:function(t){
+      return t;
+  },
+  color:"black",
+  min:-Infinity,
+  max:Infinity
+},
   {
     x:function(t){
         return 0+t;
@@ -14,7 +55,10 @@ var objects=[
     },
     z:function(t){
         return 5;
-    }
+    },
+    color:"red",
+    min:-Infinity,
+    max:Infinity
   },
   {
     x:function(t){
@@ -24,8 +68,25 @@ var objects=[
         return 0+-2*t;
     },
     z:function(t){
-        return 5;
-    }
+        return 2*t;
+    },
+    color:"blue",
+        min:-Infinity,
+        max:Infinity
+  },
+  {
+    x:function(t){
+      return 5*Math.cos(t/1000);
+    },
+    y:function(t){
+      return 5*Math.sin(t/1000);
+    },
+    z:function(t){
+      return 5;
+    },
+    color:"green",
+    min:-Infinity,
+    max:Infinity
   },
 
 ];
@@ -35,84 +96,84 @@ var objects=[
 
 
 
-var min=-100;
-var max=100;
-var step=5;
+var min=-30;
+var max=30;
+var step=1;
 
 
 //Canvas Dimensions
-var width=200/2;
-var height=200/2;
-var depth=200/2
+var width=c.width/2;
+var height=c.height/2;
+var depth=c.width/2
 
 
 var camera={
   x:0,
   y:0,
-  z:0,
+  z:-20,
   theta:0,
   phi:0
 }
 
-
-
-
-for(var i=min;i<max;i+=step){
-  for(var j=min;j<max;j+=step){
-    for(var k=0;k<objects.length;k++){
-      var cameraLine=
-      {
-        x:function(t){
-            return i;
-        },
-        y:function(t){
-            return j;
-        },
-        z:function(t){
-            return t;
-        }
-      };
-      var temp=intersection(cameraLine,objects[k]);
-      if(temp.length>=1){
-        ctx.fillStyle="black";
-        ctx.beginPath();
-        console.log(100/distance(temp[0],[i,j,0])/4);
-        ctx.arc(i+width,j+height,100/distance(temp[0],[camera.x+i,camera.y+j,camera.z])/4,0,2*Math.PI,false);
-        ctx.fill();
-        break;
-      }
-    }
-  }
-}
-
-
-
-
-
-
-
 /*
-for(var i=0-width;i<width;i+=step){
-  for(var j=0-height;j<height;j+=step){
-    for(var k=0-depth;k<depth;k+=step){
-      for(var l=0;l<objects.length;l++){
-        if(intersects(objects[l],[i,j,k])){
-          if(k>0){
-            ctx.fillStyle="black";
-            ctx.beginPath();
-            ctx.arc(i+width,j+height,k/width*10,0,2*Math.PI,false);
-            ctx.fill();
-            //ctx.fillRect(i+width,j+height,1, 1 );
-
-          }
-          break;
-          break;
-        }
-      }
+var workers=[];
+for(var i=0;i<width*2+height*2;i++){
+  workers.push(new Worker('render-worker.js');)
+  workers[i].postMessage();
+  workers[i].onmessage=
+    function(e){
+      var =e.data;
     }
-  }
 }
 */
+
+render();
+
+
+function render(){
+  ctx.clearRect(0,0,c.width,c.height);
+  for(var i=min;i<max;i+=step){
+    for(var j=min;j<max;j+=step){
+      for(var k=0;k<objects.length;k++){
+        var cameraLine=
+        {
+          x:function(t){
+              return camera.x+i;
+          },
+          y:function(t){
+              return camera.y+j;
+          },
+          z:function(t){
+            if(t<0){
+              return NaN;
+            }
+              return camera.z+t;
+          }
+        };
+        var temp=intersection(cameraLine,objects[k]);
+        if(temp.length>=1){
+          if(objects[k].color!=null){
+            ctx.fillStyle=objects[k].color;
+          }else{
+            ctx.fillStyle="black";
+          }
+          ctx.beginPath();
+          ctx.arc(i+width,j+height,1/Math.tanh(distance(temp[0],[camera.x,camera.y,camera.z])),0,2*Math.PI,false);
+          ctx.fill();
+          //break;
+        }
+      }
+    }
+  }
+  camera.x+=5;
+  //setTimeout(render,0);
+}
+
+
+
+
+
+
 
 
 function intersection(o1,o2){
@@ -148,17 +209,17 @@ function distance(pt1,pt2){
 }
 
 
-function Point(x,y,z){
+function Point(a,b,c){
   return(
   {
     x:function(t){
-      return x;
+      return a;
     },
     y:function(t){
-      return y;
+      return b;
     },
     z:function(t){
-      return z;
+      return c;
     }
   }
   );
@@ -167,19 +228,26 @@ function Point(x,y,z){
 function Line(x1,y1,z1,x2,y2,z2){
   var slopeX=x2-x1;
   var slopeY=y2-y1;
-  var slopeZ=y2-y1;
-
-  console.log(slopeX*1+x1);
+  var slopeZ=z2-z1;
 
   return(
   {
     x:function(t){
+      if(t<0){
+        return NaN;
+      }
       return slopeX*t+x1;
     },
     y:function(t){
+      if(t<0){
+        return NaN;
+      }
       return slopeY*t+y1;
     },
     z:function(t){
+      if(t<0){
+        return NaN;
+      }
       return slopeZ*t+z1;
     }
   });
